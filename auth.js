@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { api } from "./service/api"
@@ -19,6 +17,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     try{
       console.log("credentials", credentials);
       const response = await api.post("/login", credentials);
+      console.log("response", response);
       const data = response.data;
 
       if (data) {
@@ -36,7 +35,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return null;
       }
     } catch (error) {
-      console.log("error", error);
+      console.error("error", error);
       return null;
     }
   },
@@ -45,6 +44,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/login",  // Halaman login custom
     signOut: "/login", // Halaman logout custom
   },    
+  secret: process.env.SECRET,
+  jwt: {
+    secret: process.env.SECRET,
+  },
   callbacks: {
     async jwt({user, token}) {
         if (user) {
