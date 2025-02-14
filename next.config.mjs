@@ -1,6 +1,6 @@
 const nextConfig = {
     env: {
-      BASE_URL: 'http://localhost:8080', // URL API kamu
+      BASE_URL: 'http://10.10.102.167:8080', // URL API kamu
 
     },
   };

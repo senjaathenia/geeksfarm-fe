@@ -15,6 +15,7 @@ const Sidebar = ({ avatarUrl}) => {
 
   const userName = session?.user?.name || "Guest";
   const userRole = session?.user?.role || "User";
+
   return (
     <aside
       className={`fixed z-[2] w-64 bg-white dark:bg-gray-800 shadow-lg h-screen p-6 flex flex-col transition-all duration-300 rounded-r-3xl`}
