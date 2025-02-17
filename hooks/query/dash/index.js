@@ -2,25 +2,28 @@
 import { apiAuthed } from '../../../service/api';
 import { useQuery } from '@tanstack/react-query'; // Pastikan mengimpor dari React Query versi 5
 
-const useGetUsers = () => {
+const useGetUsers = (params, options) => {
   return useQuery({
-    queryKey: ['getUsers'], // queryKey dalam bentuk array
+    queryKey: ['getUsers', params], // queryKey dalam bentuk array
     queryFn: async () => {
-      const response = await apiAuthed.get('/get-users');
+      const response = await apiAuthed.get('/get-users', params);
+      console.log(response.data)
       return response.data;  // Kembalikan data
-    }
+    },
+    ...options
   });
 };
 
 
 // Hook untuk mengambil data Events
-const useGetEvents = () => {
+const useGetEvents = (params, options) => {
     return useQuery({
-      queryKey: ['getEvents'], // Query key sebagai array
+      queryKey: ['getEvents', params], // Query key sebagai array
       queryFn: async () => {
-        const response = await apiAuthed.get('/get-events');
+        const response = await apiAuthed.get('/get-events', params);
         return response.data; // Mengembalikan data dari API
-      }
+      },
+      ...options
     });
   };
   
@@ -47,15 +50,15 @@ const useGetEvents = () => {
   };
   
   // Hook untuk mengambil data Items
-//   const useGetItems = () => {
-//     return useQuery({
-//       queryKey: ['getItems'], 
-//       queryFn: async () => {
-//         const response = await apiAuthed.get('/get-items');
-//         return response.data;
-//       }
-//     });
-//   };
+  const useGetItems = () => {
+    return useQuery({
+      queryKey: ['getItems'], 
+      queryFn: async () => {
+        const response = await apiAuthed.get('/get-items');
+        return response.data;
+      }
+    });
+  };
   
 export {
   useGetUsers,

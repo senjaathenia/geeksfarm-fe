@@ -1,59 +1,31 @@
 'use client'
 import { useEffect, useState } from "react";
 import { apiAuthed } from "@/service/api";  // Sesuaikan dengan import API kamu
+import { useIsFetching, useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { useGetEvents, useGetItems, useGetUsers } from "@/hooks/query/dash";
 
 export default function DashboardPage() {
-  const [data, setData] = useState({
-    users: 0,
-    events: 0,
-    items: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const isLoading = useIsFetching()
   const [search, setSearch] = useState(""); // Pencarian
 
-  // Simulasi Role User (misalnya diambil dari API atau Context)
-  const [userRole, setUserRole] = useState("Admin", "Super Admin"); // Bisa "superadmin" atau "admin"
+  const userRole = useSession().data?.user?.role;
 
-  // Fungsi untuk fetch data
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Ambil data berdasarkan role
-      if (userRole === "Super Admin") {
-        // Fetch data pengguna hanya untuk superadmin
-        const usersResponse = await apiAuthed.get("/get-users", {
-          params: { keyword: search, limit: 1000 },
-        });
-        const activeUsers = usersResponse.data?.data?.users?.length || 0;
-        setData(prevData => ({ ...prevData, activeUsers }));
-      }
+  const usersQuery = useGetUsers({ keyword: search, limit: 1000 }, {enabled: userRole === "Super Admin"});
+  const itemsQuery = useGetItems();
+  const eventsQuery = useGetEvents({ keyword: search, limit: 1000 });
+  
+  const hasError = usersQuery.error || eventsQuery.error || itemsQuery.error;
 
-      // Ambil data events untuk semua role (admin dan superadmin)
-      const eventsResponse = await apiAuthed.get("/get-events", {
-        params: { keyword: search, limit: 1000 },
-      });
-      const events = eventsResponse.data?.data?.events?.length || 0;
-      setData(prevData => ({ ...prevData, events }));
+  console.log(usersQuery.data)
 
-      // Ambil data items jika dibutuhkan
-      const itemsResponse = await apiAuthed.get("/get-items", {});
-      const items = itemsResponse.data?.data?.data?.items?.length || 0;
-      setData(prevData => ({ ...prevData, items }));
-
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setError("Failed to load data");
-    } finally {
-      setLoading(false);
-    }
+  const data = {
+    users: usersQuery.data?.data?.users.length || 0,
+    events: eventsQuery.data?.data.events.length || 0,
+    items: itemsQuery.data?.data?.data?.items.length || 0,
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [search]);
-
-  console.log("User Role:", userRole); // Debugging role
+  console.log(data)
 
   return (
     <div>
@@ -68,12 +40,12 @@ export default function DashboardPage() {
           userRole === "Super Admin" ? (
             <div className={`p-8 rounded-lg shadow-xl transition-all duration-300 ease-in-out hover:scale-105 bg-green-100 text-green-900`}>
               <p className="text-lg font-medium">Active Users</p>
-              <p className="text-4xl font-bold">{data.users}</p>
+              <p className="text-4xl font-bold">{data?.users ?? "0"}</p>
             </div>
           ) : userRole === "Admin" ? (
             <div className={`p-8 rounded-lg shadow-xl transition-all duration-300 ease-in-out hover:scale-105 bg-purple-100 text-purple-900`}>
               <p className="text-lg font-medium">Events</p>
-              <p className="text-4xl font-bold">{data.events}</p>
+              <p className="text-4xl font-bold">{data?.events}</p>
             </div>
           ) : (
             <p className="text-red-500">Role Tidak Valid</p> // Debugging jika role tidak valid
@@ -93,7 +65,7 @@ export default function DashboardPage() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {isLoading ? (
               <tr>
                 <td colSpan="3" className="text-center py-4">Loading...</td>
               </tr>

@@ -16,7 +16,12 @@ export async function signInForm(formData) {
         email,
         password,
         redirect: false,
-      });
+      })
+
+
+      
+        redirect("/dashboard");
+
 
       // if (!result) {
       //   return { error: "Authentication failed" };
@@ -27,7 +32,6 @@ export async function signInForm(formData) {
       //   return { error: "Invalid credentials" };
       // }
 
-      redirect("/dashboard");
     // } catch (error) {
     //   console.error("Login error:", error);
     //   // Only log actual errors, not redirect "errors"
