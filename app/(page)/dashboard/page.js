@@ -14,18 +14,14 @@ export default function DashboardPage() {
   const usersQuery = useGetUsers({ keyword: search, limit: 1000 }, {enabled: userRole === "Super Admin"});
   const itemsQuery = useGetItems();
   const eventsQuery = useGetEvents({ keyword: search, limit: 1000 });
-  
-  const hasError = usersQuery.error || eventsQuery.error || itemsQuery.error;
 
-  console.log(usersQuery.data)
+  const hasError = usersQuery.error || eventsQuery.error || itemsQuery.error;
 
   const data = {
     users: usersQuery.data?.data?.users.length || 0,
     events: eventsQuery.data?.data.events.length || 0,
     items: itemsQuery.data?.data?.data?.items.length || 0,
   };
-
-  console.log(data)
 
   return (
     <div>

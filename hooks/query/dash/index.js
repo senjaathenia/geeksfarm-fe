@@ -7,7 +7,6 @@ const useGetUsers = (params, options) => {
     queryKey: ['getUsers', params], // queryKey dalam bentuk array
     queryFn: async () => {
       const response = await apiAuthed.get('/get-users', params);
-      console.log(response.data)
       return response.data;  // Kembalikan data
     },
     ...options

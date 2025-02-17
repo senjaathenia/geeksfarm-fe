@@ -9,9 +9,9 @@ const Sidebar = ({ avatarUrl}) => {
   const { data: session } = useSession();
 
   // Menangani status loading
-  if (status === "loading") {
-    return <div>Loading...</div>;  // Atau bisa ditampilkan spinner
-  }
+  // if (status === "loading") {
+  //   return <div>Loading...</div>;  // Atau bisa ditampilkan spinner
+  // }
 
   const userName = session?.user?.name || "Guest";
   const userRole = session?.user?.role || "User";
