@@ -20,7 +20,6 @@ export default function DashboardPage() {
       const usersResponse = await apiAuthed.get("/get-users", {
         params: { keyword: search, limit: 1000 }, // Menggunakan limit yang lebih tinggi
       });
-      console.log("Users Response:", usersResponse.data);
 
       const activeUsers = usersResponse.data?.data?.users?.filter(user => user.status === "Active").length || 0;
       const totalUsers = usersResponse.data?.data?.users?.length || 0;

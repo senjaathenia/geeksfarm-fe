@@ -5,13 +5,11 @@ export const api = axios.create({
     baseURL: process.env.BASE_URL, // Menggunakan variabel dari .env
     timeout: 10000,
 });
-console.log('BASE_URL:', process.env.BASE_URL);
 // Create an instance of axios
 export const apiAuthed = axios.create({
     baseURL: process.env.BASE_URL, // Replace with your API base URL
     timeout: 10000, // Request timeout
 });
-console.log('BASE_URL:', process.env.BASE_URL);
 // Request interceptor
 // apiAuthed.interceptors.request.use(
 //     (config) => {
@@ -33,11 +31,10 @@ apiAuthed.interceptors.request.use(
   async (config) => {
     try {
       const session = await getSession();
-      console.log("Session data:", session); // Debugging sesi
 
       const token = session?.user?.token; // Ambil token dari sesi
       if (!token) {
-        window.location.href = "/login"; // Redirect ke halaman login jika token tidak ditemukan
+        window.location.href = "/login";
         throw new Error("Token tidak ditemukan. Harap login terlebih dahulu.");
       }
 
@@ -58,6 +55,7 @@ apiAuthed.interceptors.request.use(
     },
     (error) => {
       // Handle error response
+      console.log(error)
       if (error.response && error.response.status === 401) {
         console.error("Unauthorized, logging out...");
         signOut(); // Gunakan NextAuth untuk logout pengguna

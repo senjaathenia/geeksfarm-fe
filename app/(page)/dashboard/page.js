@@ -1,63 +1,28 @@
 'use client'
 import { useEffect, useState } from "react";
 import { apiAuthed } from "@/service/api";  // Sesuaikan dengan import API kamu
+import { useIsFetching, useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { useGetEvents, useGetItems, useGetUsers } from "@/hooks/query/dash";
 
-export default function DashboardPage() {zzzz
-  const [data, setData] = useState({
-    activeUsers: 0,
-    events: 0,
-    items: 0, // Misalnya jumlah laporan bisa diambil dari API lain atau di hardcode
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
+export default function DashboardPage() {
+  const isLoading = useIsFetching()
   const [search, setSearch] = useState(""); // Pencarian
 
-  // Fetch data untuk Users dan Events
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Ambil semua data users tanpa pagination (dengan limit tinggi)
-      const usersResponse = await apiAuthed.get("/get-users", {
-        params: { keyword: search, limit: 1000 }, // Menggunakan limit yang lebih tinggi
-      });
-      console.log("Users Response:", usersResponse.data);
-  
-      const activeUsers = usersResponse.data?.data?.users?.length || 0;
-  
-      // Ambil semua data events tanpa pagination (dengan limit tinggi)
-      const eventsResponse = await apiAuthed.get("/get-events", {
-        params: { keyword: search, limit: 1000 }, // Menggunakan limit yang lebih tinggi
-      });
-      console.log("Events Response:", eventsResponse.data);
-  
-      const events = eventsResponse.data?.data?.events?.length || 0;
+  const userRole = useSession().data?.user?.role;
 
-      const itemsResponse = await apiAuthed.get("/get-items", {
-      });
+  const usersQuery = useGetUsers({ keyword: search, limit: 1000 }, {enabled: userRole === "Super Admin"});
+  const itemsQuery = useGetItems();
+  const eventsQuery = useGetEvents({ keyword: search, limit: 1000 });
 
-      console.log("Items Response:", itemsResponse.data);
+  const hasError = usersQuery.error || eventsQuery.error || itemsQuery.error;
 
-      const items = itemsResponse.data?.data?.data?.items?.length || 0;
-  
-      setData({
-        activeUsers,
-        events,
-        items, // Laporan yang mungkin diambil dari API lain
-      });
-  
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setError("Failed to load data");
-    } finally {
-      setLoading(false);
-    }
+  const data = {
+    users: usersQuery.data?.data?.users.length || 0,
+    events: eventsQuery.data?.data.events.length || 0,
+    items: itemsQuery.data?.data?.data?.items.length || 0,
   };
   
-
-  useEffect(() => {
-    fetchData();
-  }, [search]); // Jalankan fetchData hanya ketika search berubah
 
   return (
     <div>
@@ -67,36 +32,15 @@ export default function DashboardPage() {zzzz
 
       {/* Bagian Kartu */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-        {[
-          {
-            title: "Active Users",
-            value: data.activeUsers,
-            lightColor: "bg-green-100 text-green-900",
-            darkColor: "bg-green-800 text-green-100",
-          },
-          {
-            title: "Events",
-            value: data.events,
-            lightColor: "bg-purple-100 text-purple-900",
-            darkColor: "bg-purple-800 text-purple-100",
-          },
-          {
-            title: "Items",
-            value: data.items,
-            lightColor: "bg-green-200 text-green-900",
-            darkColor: "bg-green-700 text-green-100",
-          },
-        ].map((card, idx) => (
-          <div
-            key={idx}
-            className={`p-8 rounded-lg shadow-xl transition-all duration-300 ease-in-out hover:scale-105 ${
-              card.lightColor
-            }`}
-          >
-            <p className="text-lg font-medium">{card.title}</p>
-            <p className="text-4xl font-bold">{card.value}</p>
-          </div>
-        ))}
+        {
+          // Kondisional untuk menampilkan kartu berdasarkan role
+          userRole === "Super Admin" ? (
+            <div className={`p-8 rounded-lg shadow-xl transition-all duration-300 ease-in-out hover:scale-105 bg-green-100 text-green-900`}>
+              <p className="text-lg font-medium">Active Users</p>
+              <p className="text-4xl font-bold">{data?.users ?? "0"}</p>
+            <p className="text-red-500">Role Tidak Valid</p> // Debugging jika role tidak valid
+          )
+        }
       </div>
 
       {/* Bagian Tabel */}
@@ -111,7 +55,7 @@ export default function DashboardPage() {zzzz
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {isLoading ? (
               <tr>
                 <td colSpan="3" className="text-center py-4">Loading...</td>
               </tr>

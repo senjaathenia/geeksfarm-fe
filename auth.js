@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { api } from "./service/api"
@@ -13,11 +11,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     credentials: {
       email: {},
       password: {},
-      role: {},
     },
   authorize: async (credentials) => {
     try{
-      console.log("credentials", credentials);
       const response = await api.post("/login", credentials);
       console.log("response", response);
       const data = response.data;
@@ -37,8 +33,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return null;
       }
     } catch (error) {
-      console.log("error", error);
-      console.error("Login failed:", error);
+      console.error("error", error);
       return null;
     }
   },
@@ -60,7 +55,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             token.name = user.name;
             token.role = user.role;
         }
-        console.log("JWT Token:", token); // Debug token
         return token;
     },
     async session({session, token}) {
@@ -72,7 +66,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         name: token.name,
         role: token.role,
       };
-        console.log("session", session);
         return session;
     },
     authorized: async ({ auth}) => {
