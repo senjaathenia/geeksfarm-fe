@@ -2,45 +2,50 @@
 import { useEffect, useState } from "react";
 import { apiAuthed } from "@/service/api";  // Sesuaikan dengan import API kamu
 
-export default function DashboardPage() {
+export default function DashboardPage() {zzzz
   const [data, setData] = useState({
-    users: 0,
+    activeUsers: 0,
     events: 0,
-    items: 0,
+    items: 0, // Misalnya jumlah laporan bisa diambil dari API lain atau di hardcode
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
   const [search, setSearch] = useState(""); // Pencarian
 
-  // Simulasi Role User (misalnya diambil dari API atau Context)
-  const [userRole, setUserRole] = useState("Admin", "Super Admin"); // Bisa "superadmin" atau "admin"
-
-  // Fungsi untuk fetch data
+  // Fetch data untuk Users dan Events
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Ambil data berdasarkan role
-      if (userRole === "Super Admin") {
-        // Fetch data pengguna hanya untuk superadmin
-        const usersResponse = await apiAuthed.get("/get-users", {
-          params: { keyword: search, limit: 1000 },
-        });
-        const activeUsers = usersResponse.data?.data?.users?.length || 0;
-        setData(prevData => ({ ...prevData, activeUsers }));
-      }
-
-      // Ambil data events untuk semua role (admin dan superadmin)
-      const eventsResponse = await apiAuthed.get("/get-events", {
-        params: { keyword: search, limit: 1000 },
+      // Ambil semua data users tanpa pagination (dengan limit tinggi)
+      const usersResponse = await apiAuthed.get("/get-users", {
+        params: { keyword: search, limit: 1000 }, // Menggunakan limit yang lebih tinggi
       });
+      console.log("Users Response:", usersResponse.data);
+  
+      const activeUsers = usersResponse.data?.data?.users?.length || 0;
+  
+      // Ambil semua data events tanpa pagination (dengan limit tinggi)
+      const eventsResponse = await apiAuthed.get("/get-events", {
+        params: { keyword: search, limit: 1000 }, // Menggunakan limit yang lebih tinggi
+      });
+      console.log("Events Response:", eventsResponse.data);
+  
       const events = eventsResponse.data?.data?.events?.length || 0;
-      setData(prevData => ({ ...prevData, events }));
 
-      // Ambil data items jika dibutuhkan
-      const itemsResponse = await apiAuthed.get("/get-items", {});
+      const itemsResponse = await apiAuthed.get("/get-items", {
+      });
+
+      console.log("Items Response:", itemsResponse.data);
+
       const items = itemsResponse.data?.data?.data?.items?.length || 0;
-      setData(prevData => ({ ...prevData, items }));
-
+  
+      setData({
+        activeUsers,
+        events,
+        items, // Laporan yang mungkin diambil dari API lain
+      });
+  
     } catch (error) {
       console.error("Error fetching data:", error);
       setError("Failed to load data");
@@ -48,12 +53,11 @@ export default function DashboardPage() {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchData();
-  }, [search]);
-
-  console.log("User Role:", userRole); // Debugging role
+  }, [search]); // Jalankan fetchData hanya ketika search berubah
 
   return (
     <div>
@@ -63,22 +67,36 @@ export default function DashboardPage() {
 
       {/* Bagian Kartu */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-        {
-          // Kondisional untuk menampilkan kartu berdasarkan role
-          userRole === "Super Admin" ? (
-            <div className={`p-8 rounded-lg shadow-xl transition-all duration-300 ease-in-out hover:scale-105 bg-green-100 text-green-900`}>
-              <p className="text-lg font-medium">Active Users</p>
-              <p className="text-4xl font-bold">{data.users}</p>
-            </div>
-          ) : userRole === "Admin" ? (
-            <div className={`p-8 rounded-lg shadow-xl transition-all duration-300 ease-in-out hover:scale-105 bg-purple-100 text-purple-900`}>
-              <p className="text-lg font-medium">Events</p>
-              <p className="text-4xl font-bold">{data.events}</p>
-            </div>
-          ) : (
-            <p className="text-red-500">Role Tidak Valid</p> // Debugging jika role tidak valid
-          )
-        }
+        {[
+          {
+            title: "Active Users",
+            value: data.activeUsers,
+            lightColor: "bg-green-100 text-green-900",
+            darkColor: "bg-green-800 text-green-100",
+          },
+          {
+            title: "Events",
+            value: data.events,
+            lightColor: "bg-purple-100 text-purple-900",
+            darkColor: "bg-purple-800 text-purple-100",
+          },
+          {
+            title: "Items",
+            value: data.items,
+            lightColor: "bg-green-200 text-green-900",
+            darkColor: "bg-green-700 text-green-100",
+          },
+        ].map((card, idx) => (
+          <div
+            key={idx}
+            className={`p-8 rounded-lg shadow-xl transition-all duration-300 ease-in-out hover:scale-105 ${
+              card.lightColor
+            }`}
+          >
+            <p className="text-lg font-medium">{card.title}</p>
+            <p className="text-4xl font-bold">{card.value}</p>
+          </div>
+        ))}
       </div>
 
       {/* Bagian Tabel */}
@@ -99,7 +117,8 @@ export default function DashboardPage() {
               </tr>
             ) : (
               <>
-                {[ 
+                {/* Daftar penggunanya */}
+                {[
                   { name: "John Doe", role: "Developer", status: "Active" },
                   { name: "Jane Smith", role: "Manager", status: "Pending" },
                   // Masukkan data users yang sesuai disini
@@ -119,6 +138,7 @@ export default function DashboardPage() {
           </tbody>
         </table>
       </div>
+
     </div>
   );
 }

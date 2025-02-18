@@ -19,6 +19,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     try{
       console.log("credentials", credentials);
       const response = await api.post("/login", credentials);
+      console.log("response", response);
       const data = response.data;
 
       if (data) {
@@ -37,6 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
     } catch (error) {
       console.log("error", error);
+      console.error("Login failed:", error);
       return null;
     }
   },
@@ -45,6 +47,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/login",  // Halaman login custom
     signOut: "/login", // Halaman logout custom
   },    
+  secret: process.env.SECRET,
+  jwt: {
+    secret: process.env.SECRET,
+  },
   callbacks: {
     async jwt({user, token}) {
         if (user) {

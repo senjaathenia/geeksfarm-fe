@@ -37,6 +37,7 @@ apiAuthed.interceptors.request.use(
 
       const token = session?.user?.token; // Ambil token dari sesi
       if (!token) {
+        window.location.href = "/login"; // Redirect ke halaman login jika token tidak ditemukan
         throw new Error("Token tidak ditemukan. Harap login terlebih dahulu.");
       }
 
