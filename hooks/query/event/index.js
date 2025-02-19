@@ -20,7 +20,7 @@ import { getEvents, addEvent, updateEvent, deleteEvent, getEventById } from "@/s
 //   });
 // };
 
-const useGetEvents = (options = {}) => {
+const useGetEvents = (params,options = {}) => {
   return useQuery({
       queryKey: ["getEvents"],
       queryFn: async () => {

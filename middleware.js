@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "./auth"
 
 const SuperAdminRoutes = ['users']
-const AdminRoutes = ['events', 'categories', 'type', 'faqs', 'testimoni', 'items']
+const AdminRoutes = ['event', 'categories', 'type', 'faqs', 'testimoni', 'items']
 
 const checkPermissions = (pathname, role) => {
   const path = pathname.split('/')

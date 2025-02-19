@@ -6,7 +6,7 @@ const useGetUsers = (params, options) => {
   return useQuery({
     queryKey: ['getUsers', params], // queryKey dalam bentuk array
     queryFn: async () => {
-      const response = await apiAuthed.get('/get-users', params);
+      const response = await apiAuthed.get('/get-users', {params});
       return response.data;  // Kembalikan data
     },
     ...options
@@ -17,9 +17,9 @@ const useGetUsers = (params, options) => {
 // Hook untuk mengambil data Events
 const useGetEvents = (params, options) => {
     return useQuery({
-      queryKey: ['getEvents', params], // Query key sebagai array
+      queryKey: ['getEvents'], // Query key sebagai array
       queryFn: async () => {
-        const response = await apiAuthed.get('/get-events', params);
+        const response = await apiAuthed.get('/get-events', {params});
         return response.data; // Mengembalikan data dari API
       },
       ...options

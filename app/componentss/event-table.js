@@ -20,23 +20,26 @@ import {
 import "react-toastify/dist/ReactToastify.css";
 import { useTheme } from "@/app/theme";
 import { useDebounce } from "use-debounce";
-import { useGetEvents } from "@/hooks/query/event";
 import { useGetTypes } from "@/hooks/query/type";
 import { useGetCategories } from "@/hooks/query/categories";
 import AsyncSelect from "react-select/async";
+import RichTextEditor from "./rich-text-editor";
+import { useIsFetching, useQueryClient } from "@tanstack/react-query";
+import { useGetEvents } from "@/hooks/query/dash";
 
  // Wajib karena kita menggunakan state di sisi klien
+ 
 
 const EventTable = () => {
+  const queryClient = useQueryClient()
+
+
 const { isDarkMode } = useTheme();
-const [events, setEvents] = useState([]);
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState(null);
 const [page, setPage] = useState(1);
 const [search, setSearch] = useState("");
 const [limit, setLimit] = useState(10);
-const [total, setTotal] = useState(0);
-const [lastPage, setLastPage] = useState(1);
 const [selectedFile, setSelectedFile] = useState(null);
 const [mediaFile, setMediaFile] = useState(null);
  const [debouncedSearch] = useDebounce(search, 500);
@@ -47,13 +50,15 @@ const [eventToUpdate, setEventToUpdate] = useState(null);
 const [title, setTitle] = useState("");
 const [typeID, setTypeID] = useState("");
 const [categories, setCategories] = useState([]);
-const [content, setContent] = useState("");
+const [content, setContent] = useState(null);
 const [rating, setRating] = useState("");
 const [isSubmitting, setIsSubmitting] = useState(false);
 
 const data = useGetEvents()
 const dataTypes = useGetTypes()
-const { data: dataCategories, isLoading, isError } = useGetCategories(); // Mengambil data kategori dengan hook
+const { data: dataCategories, isError: isErrorCategories } = useGetCategories(); // Mengambil data kategori dengan hook
+
+const isLoading = useIsFetching()
 
 
 const loadOptions = async (inputValue) => {
@@ -121,29 +126,22 @@ const handleCategoriesChange = (selectedOptions) => {
   setCategories(selectedOptions ? selectedOptions.map(option => option.value) : []);
 };
 
-const fetchEvents = async () => {
-    try {
-      const response = await apiAuthed.get("/get-events", {
-        params: { pages: page, limit, keyword: search },
-      });
-      const eventsData = response.data?.data?.events || [];
-      setEvents(eventsData);
-      setTotal(response.data?.data?.total || 0);
-      setLastPage(response.data?.data?.last_page || 1);
-      toast.success("Events loaded successfully!");
-    } catch (error) {
-      console.error("Fetch Events Error:", error);
-      setError(error);
-      toast.error("Failed to load events!");
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+const {
+  data: eventsData,
+  isError: isErrorEvents,
+} = useGetEvents({ page, limit, keyword: debouncedSearch });
+
+const events = eventsData?.data?.events || [];
+const total = eventsData?.data?.total || 0;
+const lastPage = eventsData?.data?.last_page || 1;
+
 useEffect(() => {
-    fetchEvents();
-}, [page, limit, debouncedSearch]);
+  // Invalidate and refetch when pagination params change
+  queryClient.invalidateQueries({ 
+    queryKey: ['getEvents']
+  });
+}, [page, limit, debouncedSearch, queryClient]);
+
 
 const columns = [
     { accessorKey: "id", header: "ID" },
@@ -188,6 +186,7 @@ const columns = [
       ),
     },
   ];
+
   
   const table = useReactTable({
     data: events,
@@ -224,7 +223,7 @@ const columns = [
     try {
       await apiAuthed.delete(`/delete-events/${id}`);
       toast.success("Event deleted successfully.");
-      fetchEvents();
+      queryClient.invalidateQueries({ queryKey: ['getEvents'] })
     } catch (error) {
       console.error("Delete Event Error:", error);
       toast.error("Failed to delete event.");
@@ -269,7 +268,7 @@ const columns = [
             : await apiAuthed.put(`/update-events/${eventToUpdate.id}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
 
         toast.success(`Event ${isAddMode ? "added" : "updated"} successfully.`);
-        fetchEvents();
+        queryClient.invalidateQueries({ queryKey: ['getEvents'] })
         setIsModalOpen(false);
     } catch (error) {
         console.error("Submit Event Error:", error);
@@ -278,6 +277,7 @@ const columns = [
         setIsSubmitting(false);
     }
 };
+
 
   return (
     <div className="container mx-auto mt-1 px-4">
@@ -320,7 +320,7 @@ const columns = [
                 ))}
                 </thead>
                 <tbody>
-                 {loading ? (
+                 {isLoading ? (
                               <tr>
                                 <td colSpan={columns.length} className="text-center py-4">
                                   Loading...
@@ -329,11 +329,13 @@ const columns = [
                             ) : events.length > 0 ? (
                               table.getRowModel().rows.map((row) => (
                                 <tr key={row.id}>
-                                  {row.getVisibleCells().map((cell) => (
-                                    <td key={cell.id} className="px-6 py-4">
-                                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </td>
-                                  ))}
+                                  {row.getVisibleCells().map((cell) => {
+                                    return (
+                                      <td key={cell.id} className="px-6 py-4">
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                      </td>
+                                    )
+                                  })}
                                 </tr>
                               ))
                             ) : (
@@ -422,7 +424,7 @@ const columns = [
           {/* Modal */}
 {isModalOpen && (
   <div className="fixed z-10 inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-96">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-[500px] w-full">
       <h2 className="text-2xl font-semibold mb-4">
         {isAddMode ? "Add Event" : "Update Event"}
       </h2>
@@ -441,13 +443,14 @@ const columns = [
 
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Content</label>
-          <input
+          {/* <input
             type="text"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-300 dark:bg-gray-800 dark:text-white dark:border-gray-600"
             required
-          />
+          /> */}
+          <RichTextEditor defaultValue={content || ""} onChange={setContent} />
         </div>
         {/* Description Input */}
         {/* Type Dropdown */}
@@ -487,7 +490,7 @@ const columns = [
   }).filter(Boolean)} // Filter hanya kategori yang valid
   placeholder="Select Categories"
   isLoading={isLoading}
-  isDisabled={isLoading || isError} // Pastikan dropdown tidak dinonaktifkan ketika data sudah ada
+  isDisabled={isLoading || isErrorCategories || isErrorEvents} // Pastikan dropdown tidak dinonaktifkan ketika data sudah ada
 />
 </div>
   <div className="mb-4" onDragOver={(e) => e.preventDefault()} onDrop={(e) => {
@@ -510,7 +513,7 @@ const columns = [
       {mediaFile ? (
         <div className="text-center">
           {/* Preview if file uploaded */}
-          <img
+          <img 
             src={URL.createObjectURL(mediaFile)}
             alt="Preview"
             className="max-w-[150px] max-h-[150px] object-cover rounded-lg shadow-md"

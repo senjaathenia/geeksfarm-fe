@@ -10,8 +10,6 @@ export default function CategorisManagement() {
       <div className="mb-8">
         <CategoryTable />
       </div>
-
-
     </div>
   );
 }

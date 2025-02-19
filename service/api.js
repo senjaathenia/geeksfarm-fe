@@ -1,3 +1,4 @@
+import { signOut } from '../auth';
 import axios from 'axios';
 import { getSession } from 'next-auth/react';
 
@@ -32,6 +33,8 @@ apiAuthed.interceptors.request.use(
     try {
       const session = await getSession();
 
+      console.log(session)
+
       const token = session?.user?.token; // Ambil token dari sesi
       if (!token) {
         window.location.href = "/login";
@@ -57,9 +60,13 @@ apiAuthed.interceptors.request.use(
       // Handle error response
       console.log(error)
       if (error.response && error.response.status === 401) {
-        console.error("Unauthorized, logging out...");
-        signOut(); // Gunakan NextAuth untuk logout pengguna
-        window.location.href = "/login"; // Redirect ke halaman login
+        document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "userRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        signOut({redirect: false}).then(() => {
+          window.location.href = "/login";
+        });
       }
       return Promise.reject(error);
     }

@@ -2,7 +2,6 @@
 
 import EventTable from "@/app/componentss/event-table";
 
-
 export default function EventManagement() {
   return (
     <div className="container mx-auto mt-8 px-4">
@@ -11,8 +10,6 @@ export default function EventManagement() {
       <div className="mb-8">
         <EventTable />
       </div>
-
-
     </div>
   );
 }
