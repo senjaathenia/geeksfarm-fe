@@ -31,9 +31,7 @@ export const apiAuthed = axios.create({
 apiAuthed.interceptors.request.use(
   async (config) => {
     try {
-      const session = await getSession();
-
-      console.log(session)
+      const session = await getSession()
 
       const token = session?.user?.token; // Ambil token dari sesi
       if (!token) {
@@ -44,7 +42,7 @@ apiAuthed.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`; // Tambahkan token ke header
       return config;
     } catch (error) {
-      console.error("Error in request interceptor:", error);
+      console.error("Error in request interceptor:", error);zzz
       return Promise.reject(error);
     }
   },
@@ -58,13 +56,18 @@ apiAuthed.interceptors.request.use(
     },
     (error) => {
       // Handle error response
-      console.log(error)
-      if (error.response && error.response.status === 401) {
+      if ( error.response.status === 401) {
         document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "userRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+          console.log( error.response.status)
+
+
         signOut({redirect: false}).then(() => {
+          console.log( error.response.status)
+
           window.location.href = "/login";
         });
       }

@@ -2,17 +2,16 @@
 import { apiAuthed } from '../../../service/api';
 import { useQuery } from '@tanstack/react-query'; // Pastikan mengimpor dari React Query versi 5
 
-const useGetUsers = (params, options) => {
+const useGetUserStatus = (params, options) => {
   return useQuery({
-    queryKey: ['getUsers', params], // queryKey dalam bentuk array
+    queryKey: ['getUserStatus', params], // queryKey dalam bentuk array
     queryFn: async () => {
-      const response = await apiAuthed.get('/get-users', {params});
+      const response = await apiAuthed.get('/get-user-status', {params});
       return response.data;  // Kembalikan data
     },
     ...options
   });
 };
-
 
 // Hook untuk mengambil data Events
 const useGetEvents = (params, options) => {
@@ -47,7 +46,17 @@ const useGetEvents = (params, options) => {
       }
     });
   };
-  
+
+  const useGetCategories= () => {
+    return useQuery({
+      queryKey: ['getCategories'], 
+      queryFn: async () => {
+        const response = await apiAuthed.get('/get-categories');
+        return response.data;
+      }
+    });
+  };
+
   // Hook untuk mengambil data Items
   const useGetItems = () => {
     return useQuery({
@@ -58,11 +67,23 @@ const useGetEvents = (params, options) => {
       }
     });
   };
+
+  const useGetTypes = () => {
+    return useQuery({
+      queryKey: ['getTypes'], 
+      queryFn: async () => {
+        const response = await apiAuthed.get('/get-types');
+        return response.data;
+      }
+    });
+  };
   
 export {
-  useGetUsers,
+  useGetUserStatus,
   useGetEvents,
   useGetFaqs,
   useGetTestimoni,
-  useGetItems
+  useGetItems,
+  useGetCategories,
+  useGetTypes
 };
