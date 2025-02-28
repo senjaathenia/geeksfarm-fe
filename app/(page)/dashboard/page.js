@@ -154,7 +154,7 @@ export default function DashboardPage() {
         paginatedEvents.map((event, index) => (
           <tr key={`${event.id}-${index}`} className="cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-500 hover:scale-105 transition-all duration-300 ease-in-out">
             <td className="py-4 px-6 border-b">{event.title}</td>
-            <td className="py-4 px-6 border-b">{event.content ? event.content : "No content available"}</td>
+            <td className="py-4 px-6 border-b" dangerouslySetInnerHTML={{__html: event.content ? event.content : "No content available"}}></td>
             <td className="py-4 px-6 border-b">{event.type?.name || "No type available"}</td>
             <td className="py-4 px-6 border-b">
               {event.categories?.map((category, idx) => (

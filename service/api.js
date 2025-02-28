@@ -1,6 +1,7 @@
 import { signOut } from '../auth';
 import axios from 'axios';
 import { getSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 
 export const api = axios.create({
     baseURL: process.env.BASE_URL, // Menggunakan variabel dari .env
@@ -35,8 +36,7 @@ apiAuthed.interceptors.request.use(
 
       const token = session?.user?.token; // Ambil token dari sesi
       if (!token) {
-        window.location.href = "/login";
-        throw new Error("Token tidak ditemukan. Harap login terlebih dahulu.");
+        redirect("/login");
       }
 
       config.headers.Authorization = `Bearer ${token}`; // Tambahkan token ke header
@@ -68,7 +68,7 @@ apiAuthed.interceptors.request.use(
         signOut({redirect: false}).then(() => {
           console.log( error.response.status)
 
-          window.location.href = "/login";
+          redirect("/login");
         });
       }
       return Promise.reject(error);
