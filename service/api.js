@@ -1,6 +1,6 @@
-import { signOut } from '../auth';
+
 import axios from 'axios';
-import { getSession } from 'next-auth/react';
+import { getSession, signOut } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 
 export const api = axios.create({
@@ -54,23 +54,13 @@ apiAuthed.interceptors.request.use(
       // Handle successful response
       return response;
     },
-    (error) => {
+   async (error) => {
       // Handle error response
       if ( error.response.status === 401) {
-        document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = "userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = "userRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
           console.log( error.response.status)
-
-
-        signOut({redirect: false}).then(() => {
-          console.log( error.response.status)
-
-          redirect("/login");
-        });
+          await signOut({ redirect: true, callbackUrl: "/login" });
       }
+      
       return Promise.reject(error);
     }
   );

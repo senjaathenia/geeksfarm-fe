@@ -1,12 +1,27 @@
 import { NextResponse } from "next/server"
-import { auth } from "./auth"
+import { auth, signOut } from "./auth"
+import { redirect } from "next/dist/server/api-utils"
 
-const SuperAdminRoutes = ['users']
+const SuperAdminRoutes = ['user']
 const AdminRoutes = ['event', 'categories', 'type', 'faqs', 'testimoni', 'items']
+
+const validateToken = (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET)
+    return { valid: true, expired: false, decoded }
+  } catch (error) {
+    return { 
+      valid: false, 
+      expired: error.name === 'TokenExpiredError', 
+      decoded: null 
+    }
+  }
+}
+
 
 const checkPermissions = (pathname, role) => {
   const path = pathname.split('/')
-  
+
   if (role === 'Super Admin') {
     return !AdminRoutes.some(route => path.includes(route)) &&
     (SuperAdminRoutes.some(route => path.includes(route)) || pathname === '/dashboard')
@@ -22,6 +37,11 @@ export default auth(async (req) => {
   const session = await auth()
   const role = session?.user?.role
   const url = req.nextUrl.clone()
+  const token = session?.user?.token
+  const { valid, expired, decoded } = validateToken(token)
+
+
+  console.log(session)
 
   if (session && pathname === '/login') {
     return NextResponse.redirect(new URL('/dashboard', req.url))
@@ -42,6 +62,7 @@ export default auth(async (req) => {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
   }
+
 
   return NextResponse.next()
 })

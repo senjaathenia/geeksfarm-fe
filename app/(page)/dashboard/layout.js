@@ -50,12 +50,7 @@ export default function Home({ children }) {
 
 
   const handleLogout = async () => {
-    document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "userRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    await signOut({ redirect: false });
-    window.location.href = "/login";
+    await signOut({ redirect: true, redirectTo: "/login" });
   };
   // const handleLogout = async () => zzz{
   //   await signOut({ redirect: false });

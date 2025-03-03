@@ -2,6 +2,10 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { api } from "./service/api"
 
+import jwt from 'jsonwebtoken'
+
+// Function to validate JWT token
+
  
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session:{
@@ -58,6 +62,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
     },
     async session({session, token}) {
+
+//  if (!valid) {
+//     // Return minimal valid session showing user is not authenticated
+//     return {
+//       ...session,
+//       user: null,
+//       expires: new Date(0).toISOString() // Expire immediately
+//     }
+//   }
+      
       session.user = {
         ...session.user,
         token: token.accessToken,
@@ -66,6 +80,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         name: token.name,
         role: token.role,
       };
+
         return session;
     },
     authorized: async ({ auth}) => {
