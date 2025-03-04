@@ -6,10 +6,23 @@ import jwt from 'jsonwebtoken'
 
 // Function to validate JWT token
 
- 
+const validateToken = (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET)
+    return { valid: true, expired: false, decoded }
+  } catch (error) {
+    return { 
+      valid: false, 
+      expired: error.name === 'TokenExpiredError', 
+      decoded: null 
+    }
+  }
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session:{
     strategy: "jwt",
+    maxAge: 60
   },
   providers: [Credentials({
     credentials: {
@@ -19,7 +32,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   authorize: async (credentials) => {
     try{
       const response = await api.post("/login", credentials);
-      console.log("response", response);
       const data = response.data;
 
       if (data) {
@@ -62,15 +74,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
     },
     async session({session, token}) {
+      const validated = validateToken(token.accessToken)
+      console.log(validated)
 
-//  if (!valid) {
-//     // Return minimal valid session showing user is not authenticated
-//     return {
-//       ...session,
-//       user: null,
-//       expires: new Date(0).toISOString() // Expire immediately
-//     }
-//   }
+      if(session.expires){
+        session.expires = new Date(0).toISOString()
+      }
       
       session.user = {
         ...session.user,
